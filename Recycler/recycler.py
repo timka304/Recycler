@@ -8,14 +8,15 @@ import time
 
 
 screen = pygame.display.set_mode((900, 700))
-background = pygame.transform.scale("background.png", (900, 700))
-screen.blit(background, (0, 0))
+background = pygame.image.load("images/background.png")
+bg = pygame.transform.scale(background, (900, 700))
+screen.blit(bg, (0, 0))
 
 class Bin(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load("images/bin.png")
-        self.image = pygame.transform.scale(self.image, (40, 60))
+        self.image = pygame.image.load("images/bin.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (100,100))
         self.rect = self.image.get_rect()
 
 class Recyclable(pygame.sprite.Sprite):
@@ -32,13 +33,13 @@ class Non_recyclable(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (40, 60))
         self.rect = self.image.get_rect()
 
-images = ["box.png", "item1.png", "pencil.png"]
+images = ["images/box.png", "images/item1.png", "images/pencil.png"]
 
 all_sprites = pygame.sprite.Group()
 non_recyclables = pygame.sprite.Group()
 recyclables = pygame.sprite.Group()
 
-for i in range(30):
+for i in range(10):
     recyclable = Recyclable(random.choice(images))
     recyclable.rect.x = random.randint(0,900)
     recyclable.rect.y = random.randint(0, 700)
@@ -55,12 +56,12 @@ for i in range(15):
 bin = Bin()
 all_sprites.add(bin)
 
-score = 0
+score = int(0)
 playing = True
 clock = pygame.time.Clock()
 start_time = time.time()
 font = pygame.font.SysFont("Arial", 20)
-score = pygame.font.SysFont("Arial", 20)
+
 
 text = font.render("Score: "+str(score), (True), "red")
 
@@ -77,4 +78,43 @@ while playing:
             #change the background to a winning image
         else:
             #change the background to a losing image
+            text = font.render("You Lose", True, "blue")
         screen.blit(text, (300, 300))
+    else:
+        count_down = font.render("Time Left", str(time_elapsed), True, "blue")
+        screen.blit(count_down, (800, 650))
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            if bin.rect.y>0:
+                bin.rect.y -= 5
+        if keys[pygame.K_DOWN]:
+            if bin.rect.y<700:
+                bin.rect.y += 5
+        if keys[pygame.K_RIGHT]:
+            if bin.rect.x<900:
+                bin.rect.x+=5
+        if keys[pygame.K_LEFT]:
+            if bin.rect.x>0:
+                bin.rect.x-=5
+        
+        hit_list = pygame.sprite.spritecollide(bin, all_sprites, True)
+
+        hit_list_plastic = pygame.sprite.spritecollide(bin, non_recyclables, True)
+
+        for i in hit_list:
+            score = score + 1
+            text = font.render("Score: ",score, True, "blue")
+        
+        for plastic in hit_list_plastic:
+            score -= 2
+            text = font.render("Score: " + str(score), True, "blue")
+
+        screen.blit(text, (500, 500))
+        
+        all_sprites.draw(screen)
+    
+    pygame.display.update()
+
+pygame.quit()
+            
